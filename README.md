@@ -18,7 +18,7 @@
 
 ## About The Project
 
-Short project description.
+This is the project from KITRI White Hat School 2nd Team project, developed by team 'Antifragile'.
 
 ### Built With
 
