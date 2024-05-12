@@ -20,6 +20,9 @@
 
 This is the project from KITRI White Hat School 2nd Team project, developed by team 'Antifragile'.
 
+이 프로젝트는 한국정보기술연구원(KITRI) 산하 화이트햇 스쿨 2기 팀프로젝트에서 진행된 'Antifragile'팀의 프로젝트입니다.
+
+
 ### Built With
 
 - List of languages/frameworks used with verison number
