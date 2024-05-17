@@ -40,5 +40,4 @@ def main():
             else:
                 print(f"{filename}: 변조 가능성 or Unknown file type")
 
-if __name__ == "__main__":
     main()
