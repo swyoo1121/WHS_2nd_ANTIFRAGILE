@@ -25,8 +25,8 @@ class MyWindow(QWidget):
         
         layout = QVBoxLayout()
 
-        self.setLayout(layout)        
-        self.setWindowTitle("Antifragile")        
+        self.setLayout(layout)
+        self.setWindowTitle("Antifragile")
         self.setWindowIcon(QIcon("images/file-img.png"))
 
 if __name__ == '__main__':
