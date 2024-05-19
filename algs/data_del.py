@@ -1,3 +1,4 @@
+#틀 잡은 코드
 import os
 
 def detect_delete_type(file_path):
