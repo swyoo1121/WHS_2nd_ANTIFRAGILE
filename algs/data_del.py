@@ -1,6 +1,7 @@
 #틀 잡은 코드
 import os
 
+#MFT entry Header 가져옴
 def detect_delete_type(file_path):
     with open(file_path, "rb") as file:
         file.seek(22)
