@@ -1,26 +1,21 @@
-#틀 잡은 코드
 import os
 
-#MFT entry Header 가져옴
-def detect_delete_type(file_path):
-    with open(file_path, "rb") as file:
-        file.seek(22)
-        flag = file.read(2)
+def detect_deleted_files(directory):
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            try:
+                with open(file_path, 'rb') as f:
+                    # MFT 엔트리 헤더 읽기 (처음 24바이트)
+                    mft_header = f.read(24)
+                    
+                    # MFT 플래그와 0x0001을 &&연산
+                    flag = int.from_bytes(mft_header[22:24], byteorder='little')
+                    if flag & 0x0001 == 0:
+                        print(f"{file} 삭제 됨")
+            except Exception as e:
+                print(f"경로가 올바르지 않음 {file_path}: {str(e)}")
 
-        # Flag 값과 0x0001을 AND 연산하여 결과가 0이면 파일이 삭제된 상태
-        if int.from_bytes(flag, byteorder='little') & 0x0001 == 0:
-            return "완전 삭제"
-        else:
-            return "일반 삭제"
-
-def main():
-    #directory = "C:\\Users\\hj021\\Desktop\\test"
-    directory = "C:\\"
-
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        if os.path.isfile(file_path):
-            delete_type = detect_delete_type(file_path)
-            print(f"{filename}: {delete_type}")
-
-main()
+directory_path = r"C:\Users\hj021\Desktop\test"
+#directory_path = "C:\\"
+detect_deleted_files(directory_path)
