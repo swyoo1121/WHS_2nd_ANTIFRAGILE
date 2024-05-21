@@ -11,28 +11,58 @@ label.pack()
 tk.mainloop()
 """
 
-import sys
+import sys, os
+import math
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 
-class MyWindow(QWidget):
+dir = os.path.dirname(os.getcwd())
+
+class MyWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Antifragile")
+        self.setWindowIcon(QIcon("images/file-img.png"))
+        self.setGeometry(100, 100, 2000, 1200)
         self.initUI()
         
     def initUI(self):
-        self.setGeometry(100,100,2100,1400)
+        self.statusBar()
+        menubar = self.menuBar()
+                
+        fileMenu = menubar.addMenu('&File')
         
-        layout = QVBoxLayout()
-
-        self.setLayout(layout)
-        self.setWindowTitle("Antifragile")
-        self.setWindowIcon(QIcon("images/file-img.png"))
-
+        exit = QAction(QIcon("images/exit_icon.png"), '&Exit', self)
+        exit.setShortcut('Ctrl+e')
+        exit.triggered.connect(QApplication.quit)
+        
+        open = QMenu('&Open', self)
+        openSub1 = QAction(QIcon("images/newfile_icon.png"), '&New', self)
+        openSub1.setShortcut('Ctrl+N')
+        openSub2 = QAction('&Recent', self) 
+        open.addAction(openSub1)
+        open.addAction(openSub2)
+        
+        fileMenu.addMenu(open)
+        fileMenu.addAction(exit)
+        
+        editMenu = menubar.addMenu('&Edit')
+        editMenu.addAction('&Analyze')
+        
+        viewMenu = menubar.addMenu('&View')
+        
+        toolMenu = menubar.addMenu('&Tools')
+        
+        helpMenu = menubar.addMenu('&Help')
+        
+        helpMenu.addAction('&About us')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     
-    w = MyWindow()
-    w.show()
-    
+    ex = MyWindow()
+    ex.show()
+
     sys.exit(app.exec_())
