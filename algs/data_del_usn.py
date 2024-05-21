@@ -2,7 +2,7 @@ import re
 
 # 운영체제가 생성하는 파일 확장자 리스트 - 제외시킬 리스트
 excluded_extensions = [".exe", ".dll", ".sys", ".drv", ".bat", ".cmd", ".ini", ".cfg", ".inf", 
-                       ".log", ".msi", ".ocx", ".scr"]
+                       ".log", ".msi", ".ocx", ".scr", ".tmp"]
 
 # 출력하는 부분
 def print_file_info(filename, reason):
@@ -26,8 +26,8 @@ def main():
             if match:
                 filename = match.group(1).strip()
                 # 제외 시킬 파일 확장자 검사
-                if not any(filename.endswith(ext) for ext in excluded_extensions):
-                    # Reason 플래그 값 가져옴
+                if not any(filename.endswith(ext) for ext in excluded_extensions)and not filename.startswith('$')and not filename.startswith('~$'):
+                    # Reason Flag 값 가져옴
                     while True:
                         reason_line = file.readline()
                         if not reason_line:
