@@ -4,7 +4,7 @@ import re
 excluded_extensions = [".exe", ".dll", ".sys", ".drv", ".bat", ".cmd", ".ini", ".cfg", ".inf", 
                        ".log", ".msi", ".ocx", ".scr"]
 
-# 출력 함수
+# 출력하는 부분
 def print_file_info(filename, reason):
     if reason == 0x00002000:
         print(f"파일 명 : {filename:<15} 삭제 유형 : 일반삭제")
