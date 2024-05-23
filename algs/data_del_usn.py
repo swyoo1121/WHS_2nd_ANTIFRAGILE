@@ -6,7 +6,7 @@ excluded_extensions = [".exe", ".dll", ".sys", ".drv", ".bat", ".cmd", ".ini", "
 
 # 출력하는 부분
 def print_file_info(filename, reason):
-    if reason == 0x00002000:
+    if reason == 0x00002000 & reason == 0x00001000:
         print(f"파일 명 : {filename:<15} 삭제 유형 : 일반삭제")
     elif reason == 0x80000200:
         print(f"파일 명 : {filename:<15} 삭제 유형 : 완전삭제")
@@ -26,7 +26,7 @@ def main():
             if match:
                 filename = match.group(1).strip()
                 # 제외 시킬 파일 확장자 검사
-                if not any(filename.endswith(ext) for ext in excluded_extensions)and not filename.startswith('$')and not filename.startswith('~$'):
+                if not any(filename.endswith(ext) for ext in excluded_extensions):
                     # Reason Flag 값 가져옴
                     while True:
                         reason_line = file.readline()
@@ -35,7 +35,7 @@ def main():
                         reason_match = re.search(r"Reason\s+:\s+0x([0-9A-Fa-f]+)", reason_line)
                         if reason_match:
                             reason = int(reason_match.group(1), 16)
-                            if reason in (0x00002000, 0x80000200):
+                            if reason in (0x00002000,0x00001000, 0x80000200):
                                 print_file_info(filename, reason)
                             break
 
