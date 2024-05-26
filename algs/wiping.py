@@ -1,4 +1,4 @@
-# 와이핑 툴 하나로 제한 (Wiping tool limitation)
+# 와이핑 툴 Eraser 하나로 제한 (Wiping tool : Eraser)
 
 import os
 import psutil
