@@ -1,3 +1,4 @@
+#포렌식팀에서 $MFT와 $LogFile 이용하는 방법은 너무 복잡해서 아직 방법론이 나오지 않았다고 하심
 import os
 
 def detect_deleted_files(directory):
