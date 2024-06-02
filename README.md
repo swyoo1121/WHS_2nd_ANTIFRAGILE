@@ -80,7 +80,21 @@ the `/docs`.
 
 ## Contact
 
-Kristóf Gábor - [gaborkristof@protonmail.com](gaborkristof@protonmail.com)
+KITRI-White Hat School 2nd-Antifragile
+
+Lee San - 
+
+Choi Gyuyeon - 
+
+Ha Yujeong - 
+
+Cho Hyobin - 
+
+Yoo Seungwan - [swyoo1121@korea.ac.kr](swyoo1121@korea.ac.kr)
+
+Yoon Hyejun - 
+
+Park Changmin - 
 
 Project Link: link to the project
 
