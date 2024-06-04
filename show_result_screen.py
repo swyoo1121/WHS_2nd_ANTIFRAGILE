@@ -1,57 +1,15 @@
-import sys
-import os
-import math
 from PyQt5.QtWidgets import (
-    QTableWidget, QApplication, QMainWindow, QAction, 
+    QTableWidget, QApplication, QAction, 
     QMessageBox, QTextEdit, QPushButton, QVBoxLayout, 
-    QWidget, QHBoxLayout, QMenu, QTableWidgetItem, QHeaderView
+    QWidget, QHBoxLayout, QTableWidgetItem, QHeaderView
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
-dir = os.path.dirname(os.getcwd())
 
-class MyWindow(QMainWindow):
+class result_screen(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Antifragile")
-        self.setWindowIcon(QIcon("images/main_icon.png"))
-        self.setGeometry(100, 100, 2000, 1200)
-        self.initUI()
-        
-    def initUI(self):
-        self.statusBar()
-        menubar = self.menuBar()
-                
-        fileMenu = menubar.addMenu('&File')
-        
-        exit = QAction(QIcon("images/exit_icon.png"), '&Exit', self)
-        exit.setShortcut('Ctrl+e')
-        exit.triggered.connect(QApplication.aboutToQuit)
-        
-        open = QMenu('&Open', self)
-        openSub1 = QAction(QIcon("images/newfile_icon.png"), '&New', self)
-        openSub1.setShortcut('Ctrl+N')
-        openSub1.triggered.connect(QApplication.aboutQt)
-        openSub2 = QAction('&Recent', self) 
-        open.addAction(openSub1)
-        open.addAction(openSub2)
-        
-        fileMenu.addMenu(open)
-        fileMenu.addAction(exit)
-        
-        editMenu = menubar.addMenu('&Edit')
-        
-        analyze = QAction(QIcon("images/analyze_icon.png"), '&Analyze', self)
-        editMenu.addAction(analyze)
-        
-        viewMenu = menubar.addMenu('&View')
-        
-        toolMenu = menubar.addMenu('&Tools')
-        
-        helpMenu = menubar.addMenu('&Help')
-        
-        helpMenu.addAction('&About us')
         
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -109,16 +67,6 @@ class MyWindow(QMainWindow):
             }
         """)
         return table
-
-    def close_event(self, q_close_event):
-        reply = QMessageBox.question(self, "Exit", "Are you sure you want to quit?", QMessageBox.Yes | QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            q_close_event.accept()
-        else:
-            q_close_event.ignore()
-            
-    def new_file(self):
-        print("hello")
         
     def display_wiping_records(self):
         self.display_table(self.wiping_table)
@@ -155,9 +103,3 @@ class MyWindow(QMainWindow):
             item = QTableWidgetItem(value)
             item.setTextAlignment(Qt.AlignCenter)
             table.setItem(row_position, i, item)
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MyWindow()
-    ex.show()
-    sys.exit(app.exec_())

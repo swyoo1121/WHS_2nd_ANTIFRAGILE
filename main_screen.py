@@ -1,11 +1,15 @@
 ### library, global variables start
 
-import sys, os
-import math
+import sys
+import os
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QAction
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QSplitter, QWidget, QVBoxLayout
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
+
+from file_open_screen import open_screen
+from show_result_screen import result_screen
 
 dir = os.path.dirname(os.getcwd())
 
@@ -18,7 +22,8 @@ class MyWindow(QMainWindow):
         self.setWindowIcon(QIcon("images/main_icon.png"))
         self.setGeometry(100, 100, 2000, 1200)
         self.initUI()
-        
+        self.screen_split()
+
     def initUI(self):
         self.statusBar()
         menubar = self.menuBar()
@@ -49,6 +54,24 @@ class MyWindow(QMainWindow):
         helpMenu = menubar.addMenu('&Help')
         
         helpMenu.addAction('&About us')
+    
+    def screen_split(self):            
+        splitter = QSplitter(Qt.Horizontal)
+        
+        open_screen = open_screen()
+        result_screen = result_screen()
+        
+        splitter.addWidget(open_screen)
+        splitter.addWidget(result_screen)
+        splitter.setSizes([400,400])
+        
+        container = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(splitter)
+        container.setLayout(layout)
+        
+        self.setCentralWidget(container)
+        
 
     def confirm_exit(self): # Event when click the File-Exit button.
         reply = QMessageBox.question(self, "Exit", "Are you sure you want to quit?", QMessageBox.Yes | QMessageBox.No)
