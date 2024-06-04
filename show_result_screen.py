@@ -6,19 +6,10 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
-
-class result_screen(QWidget):
+class show_result_screen(QWidget):
     def __init__(self):
         super().__init__()
-        
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        
-        self.left_layout = QVBoxLayout()
-        self.file_open_area = QTextEdit("")
-        self.file_open_area.setReadOnly(True)
-        self.left_layout.addWidget(self.file_open_area)
-        
+
         self.button_layout = QHBoxLayout()
         self.wiping_button = QPushButton("와이핑")
         self.single_delete_button = QPushButton("단순삭제")
@@ -35,17 +26,19 @@ class result_screen(QWidget):
         self.wiping_table = self.create_table(2, ['경로에 파일 존재 여부', '경로'])
         self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '경로'])
         self.signature_mod_table = self.create_table(3, ['변조 파일 명', '변조 가능성', '경로'])
+        
         self.right_layout.addLayout(self.table_layout)
-
+        self.right_layout.addWidget(self.wiping_table)
+        self.right_layout.addWidget(self.single_delete_table)
+        self.right_layout.addWidget(self.signature_mod_table)
+        
+        self.setLayout(self.right_layout)  # Set layout for this widget
+        
         self.wiping_button.clicked.connect(self.display_wiping_records)
         self.single_delete_button.clicked.connect(self.display_single_delete_records)
         self.signature_mod_button.clicked.connect(self.display_signature_mod_records)
 
-        self.main_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.left_layout, 1)
-        self.main_layout.addLayout(self.right_layout, 2)
-
-        self.central_widget.setLayout(self.main_layout)
+        self.hide_all_tables()
 
     def create_table(self, columns, headers):
         table = QTableWidget()
@@ -67,19 +60,18 @@ class result_screen(QWidget):
             }
         """)
         return table
-        
+
     def display_wiping_records(self):
         self.display_table(self.wiping_table)
 
     def display_single_delete_records(self):
         self.display_table(self.single_delete_table)
-        
+
     def display_signature_mod_records(self):
         self.display_table(self.signature_mod_table)
 
     def display_table(self, table):
         self.hide_all_tables()
-        self.table_layout.addWidget(table)
         table.show()
 
     def hide_all_tables(self):

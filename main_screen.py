@@ -8,8 +8,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
-from file_open_screen import open_screen
-from show_result_screen import result_screen
+from file_open_screen import file_open_screen
+from show_result_screen import show_result_screen
 
 dir = os.path.dirname(os.getcwd())
 
@@ -54,16 +54,17 @@ class MyWindow(QMainWindow):
         helpMenu = menubar.addMenu('&Help')
         
         helpMenu.addAction('&About us')
-    
-    def screen_split(self):            
+ 
+# 화면 분할 구현. 왼쪽(파일 열기 = file_open_screen.py) + 오른쪽(출력 화면 = show_result_screen.py)으로 구성.    
+    def screen_split(self):
         splitter = QSplitter(Qt.Horizontal)
         
-        open_screen = open_screen()
-        result_screen = result_screen()
-        
-        splitter.addWidget(open_screen)
-        splitter.addWidget(result_screen)
-        splitter.setSizes([400,400])
+        open_screen_widget = file_open_screen()
+        result_screen_widget = show_result_screen()
+
+        splitter.addWidget(open_screen_widget)
+        splitter.addWidget(result_screen_widget)
+        splitter.setSizes([1600,4000])
         
         container = QWidget()
         layout = QVBoxLayout()
