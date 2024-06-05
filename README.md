@@ -93,7 +93,7 @@ Cho Hyobin -
 
 Yoo Seungwan - [swyoo1121@korea.ac.kr](swyoo1121@korea.ac.kr)
 
-Yoon Hyejun - 
+Yoon Hyejun -  [hj021313@gmail.com](hj021313@chosun.kr)
 
 Park Changmin - 
 
