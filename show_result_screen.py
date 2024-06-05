@@ -34,13 +34,13 @@ class show_result_screen(QWidget):
         self.main_layout.addWidget(self.single_delete_table)
         self.main_layout.addWidget(self.signature_mod_table)
 
-        self.setLayout(self.main_layout)  # Set layout for this widget
+        self.setLayout(self.main_layout) 
 
         self.wiping_button.clicked.connect(self.display_wiping_records)
         self.single_delete_button.clicked.connect(self.display_single_delete_records)
         self.signature_mod_button.clicked.connect(self.display_signature_mod_records)
 
-        self.show_placeholder()  # Show the placeholder initially
+        self.show_placeholder() 
 
     def create_table(self, columns, headers):
         table = QTableWidget()
