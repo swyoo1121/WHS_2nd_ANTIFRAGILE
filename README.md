@@ -25,8 +25,9 @@ This is the project from KITRI White Hat School 2nd Team project, developed by t
 
 ### Built With
 
-- List of languages/frameworks used with verison number
-- Python, C++
+- Python 3.12.2 64-bit
+- C++
+- 
 
 ## Getting Started
 
@@ -80,7 +81,21 @@ the `/docs`.
 
 ## Contact
 
-Kristóf Gábor - [gaborkristof@protonmail.com](gaborkristof@protonmail.com)
+KITRI-White Hat School 2nd-Antifragile
+
+Lee San - 
+
+Choi Gyuyeon - 
+
+Ha Yujeong - 
+
+Cho Hyobin - 
+
+Yoo Seungwan - [swyoo1121@korea.ac.kr](swyoo1121@korea.ac.kr)
+
+Yoon Hyejun -  [hj021313@gmail.com](hj021313@gmail.com)
+
+Park Changmin - 
 
 Project Link: link to the project
 
