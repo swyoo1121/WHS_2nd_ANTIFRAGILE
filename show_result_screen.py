@@ -19,26 +19,28 @@ class show_result_screen(QWidget):
         self.button_layout.addWidget(self.single_delete_button)
         self.button_layout.addWidget(self.signature_mod_button)
 
-        self.right_layout = QVBoxLayout()
-        self.right_layout.addLayout(self.button_layout)
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addLayout(self.button_layout)
 
-        self.table_layout = QVBoxLayout()
+        self.placeholder = QWidget()
+        self.placeholder.setStyleSheet("background-color: white;")
+
         self.wiping_table = self.create_table(2, ['경로에 파일 존재 여부', '경로'])
         self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '경로'])
         self.signature_mod_table = self.create_table(3, ['변조 파일 명', '변조 가능성', '경로'])
-        
-        self.right_layout.addLayout(self.table_layout)
-        self.right_layout.addWidget(self.wiping_table)
-        self.right_layout.addWidget(self.single_delete_table)
-        self.right_layout.addWidget(self.signature_mod_table)
-        
-        self.setLayout(self.right_layout)  # Set layout for this widget
-        
+
+        self.main_layout.addWidget(self.placeholder)
+        self.main_layout.addWidget(self.wiping_table)
+        self.main_layout.addWidget(self.single_delete_table)
+        self.main_layout.addWidget(self.signature_mod_table)
+
+        self.setLayout(self.main_layout) 
+
         self.wiping_button.clicked.connect(self.display_wiping_records)
         self.single_delete_button.clicked.connect(self.display_single_delete_records)
         self.signature_mod_button.clicked.connect(self.display_signature_mod_records)
 
-        self.hide_all_tables()
+        self.show_placeholder() 
 
     def create_table(self, columns, headers):
         table = QTableWidget()
@@ -78,6 +80,11 @@ class show_result_screen(QWidget):
         self.wiping_table.hide()
         self.single_delete_table.hide()
         self.signature_mod_table.hide()
+        self.placeholder.hide()
+
+    def show_placeholder(self):
+        self.hide_all_tables()
+        self.placeholder.show()
 
     def add_wiping_record(self, path):
         self.add_table_row(self.wiping_table, [path])
@@ -95,3 +102,11 @@ class show_result_screen(QWidget):
             item = QTableWidgetItem(value)
             item.setTextAlignment(Qt.AlignCenter)
             table.setItem(row_position, i, item)
+
+if __name__ == '__main__':
+    import sys
+    app = QApplication(sys.argv)
+    main_window = show_result_screen()
+    main_window.show()
+    sys.exit(app.exec_())
+
