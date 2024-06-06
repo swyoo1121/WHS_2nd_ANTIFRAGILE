@@ -25,8 +25,9 @@ This is the project from KITRI White Hat School 2nd Team project, developed by t
 
 ### Built With
 
-- List of languages/frameworks used with verison number
-- Python, C++
+- Python 3.12.2 64-bit
+- C++
+- 
 
 ## Getting Started
 
@@ -92,7 +93,7 @@ Cho Hyobin -
 
 Yoo Seungwan - [swyoo1121@korea.ac.kr](swyoo1121@korea.ac.kr)
 
-Yoon Hyejun - 
+Yoon Hyejun -  [hj021313@gmail.com](hj021313@gmail.com)
 
 Park Changmin - 
 
