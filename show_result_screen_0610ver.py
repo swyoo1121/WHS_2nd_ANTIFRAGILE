@@ -61,7 +61,7 @@ class show_result_screen(QWidget):
                 gridline-color: lightgrey;
             }
             QTableWidget::item:selected {
-                color: black;  /* 선택된 셀의 글자색을 변경하지 않도록 설정 */
+                color: black;  
             }
         """)
         return table
