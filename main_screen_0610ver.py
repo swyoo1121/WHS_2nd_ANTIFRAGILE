@@ -60,10 +60,10 @@ class MyWindow(QMainWindow):
     def screen_split(self):
         splitter = QSplitter(Qt.Horizontal)
         
-        open_screen_widget = file_open_screen()
+        self.open_screen_widget = file_open_screen()
         self.result_screen_widget = show_result_screen()
 
-        splitter.addWidget(open_screen_widget)
+        splitter.addWidget(self.open_screen_widget)
         splitter.addWidget(self.result_screen_widget)
         splitter.setSizes([1600,4000])
         
@@ -74,37 +74,44 @@ class MyWindow(QMainWindow):
         
         self.setCentralWidget(container)
 
-        # Connect the button click signal to the slot that displays the deletion records
+        # 버튼 클릭 시그널을 삭제 기록을 표시하는 슬롯에 연결
         self.result_screen_widget.single_delete_button.clicked.connect(self.display_deletion_records)
-        
-        # Get the deletion records from the first script
-        self.deletion_records = get_deletion_records()
 
-        # Process and add the deletion records to the GUI
-        for record in self.deletion_records:
-            if record.strip():  # Skip empty lines
-                file_name, delete_type, timestamp = map(str.strip, record.split(","))
-                self.result_screen_widget.add_single_delete_record(file_name, delete_type, timestamp)
-        
-    def confirm_exit(self): # Event when click the File-Exit button.
-        reply = QMessageBox.question(self, "Exit", "Are you sure you want to quit?", QMessageBox.Yes | QMessageBox.No)
-        
+    def confirm_exit(self):
+        reply = QMessageBox.question(self, "Exit", "Are you sure you want to quit?", 
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             QApplication.instance().quit()
 
-    def closeEvent(self, event): # Ignoring refer to code convention
+    def closeEvent(self, event):
         self.confirm_exit()
         event.ignore()
-            
+
     def new_file(self):
-        print("hello")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open evidence item", "", "All Files (*)")
+        if file_path:
+            self.open_screen_widget.load_file(file_path)
+            self.analyze_file(file_path)
+
+    def analyze_file(self, file_path):
+        # 여기에 파일 분석 로직 추가?
+        deletion_records = get_deletion_records(file_path)
+
+        # 분석 결과를 GUI에 추가
+        for record in deletion_records:
+            if record.strip():  # 빈 줄 건너뛰기
+                file_name, delete_type, timestamp = map(str.strip, record.split(","))
+                self.result_screen_widget.add_single_delete_record(file_name, delete_type, timestamp)
 
     def display_deletion_records(self):
         self.result_screen_widget.display_single_delete_records()
 
-def get_deletion_records():
-    result = subprocess.run([sys.executable, "print_data_del.py"], capture_output=True, text=True)
-    return result.stdout.splitlines()
+def get_deletion_records(file_path):
+    # 여기에 실제 파일 분석 로직 구현하면 될듯?
+    
+    return [
+        
+    ]
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -113,3 +120,4 @@ if __name__ == '__main__':
     ex.show()
 
     sys.exit(app.exec_())
+    
