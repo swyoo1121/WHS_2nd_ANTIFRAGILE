@@ -53,7 +53,8 @@ class MyWindow(QMainWindow):
         
         helpMenu = menubar.addMenu('&Help')
         
-        helpMenu.addAction('&About us')
+        aboutus = QAction(QIcon("images/antifragile_icon.png"), '&About us', self)
+        helpMenu.addAction(aboutus)
  
 # 화면 분할 구현. 왼쪽(파일 열기 = file_open_screen.py) + 오른쪽(출력 화면 = show_result_screen.py)으로 구성.    
     def screen_split(self):
