@@ -108,9 +108,9 @@ class MyWindow(QMainWindow):
 
 def get_deletion_records(file_path):
     # 여기에 실제 파일 분석 로직 구현하면 될듯?
-    
+    #
     return [
-        
+
     ]
 
 if __name__ == '__main__':
@@ -120,4 +120,3 @@ if __name__ == '__main__':
     ex.show()
 
     sys.exit(app.exec_())
-    
