@@ -13,7 +13,7 @@ class show_result_screen(QWidget):
         self.button_layout = QHBoxLayout()
         self.wiping_button = QPushButton("와이핑")
         self.single_delete_button = QPushButton("단순삭제")
-        self.signature_mod_button = QPushButton("시그니처 변조")
+        self.signature_mod_button = QPushButton("데이터 변조")
 
         self.button_layout.addWidget(self.wiping_button)
         self.button_layout.addWidget(self.single_delete_button)
@@ -27,7 +27,7 @@ class show_result_screen(QWidget):
 
         self.wiping_table = self.create_table(2, ['경로에 파일 존재 여부', '경로'])
         self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '시간'])
-        self.signature_mod_table = self.create_table(3, ['변조 파일 명', '변조 가능성', '경로'])
+        self.signature_mod_table = self.create_table(3, ['파일 명', '변조 가능성', '복구 경로'])
 
         self.main_layout.addWidget(self.placeholder)
         self.main_layout.addWidget(self.wiping_table)
