@@ -1,69 +1,86 @@
-# 와이핑 툴 Eraser 하나로 제한 (Wiping tool : Eraser)
-
 import os
-import psutil
 
-from os import listdir, getcwd, remove
-from os.path import isfile, join, realpath
-from pickle import load, dump
-from typing import Final
-
-# CONFIG (CONSTANT VALUES)
-CURRENT_DIR: Final = getcwd()
-SELF_DESTRUCT: Final = False
-CURRENT_SCRIPT: Final = realpath(__file__)
-DISPLAY_MESSAGE: Final = True
-
-target_subpath = r'..\..\C-CPP\104.cpp' 
+target_wiped_file_path = r'D:\wiping\$J.copy2'
+excel_signature = bytes.fromhex("78 00 6C 00 73 00 78 00")  # x.l.s.x
+j_record_signature = bytes.fromhex("00 00 02 00 00 00")
+CHUNK_SIZE = 4096  # Adjust the chunk size as needed
 
 def detect_wiped(file_path):
+    if not os.path.isfile(file_path):
+        print(f"File not found: {file_path}")
+        return
+    else:
+        print("File found")
+        
+    wiped_checker = False
+    file_offset = 0
+    counter = 0
+    new_counter = 0
+    
     with open(file_path, "rb") as file:
-        # 파일의 헤더 부분 바이트 읽어오기
-        header = file.read(16)
+        while True:
+            file.seek(file_offset)
+            chunk = file.read(CHUNK_SIZE)
+            
+            # Check for the first occurrence of the Excel signature in the current chunk
+            excel_index = chunk.find(excel_signature)
+            while excel_index != -1:
+                # Search for the closest preceding J record signature before the Excel signature
+                j_search_chunk = chunk[:excel_index]
+                j_record_index = j_search_chunk.rfind(j_record_signature)
+                if j_record_index != -1:
+                    closest_j_record_signature_offset = file_offset + j_record_index
+                else:
+                    closest_j_record_signature_offset = -1
 
-        # 파일의 푸터 부분 바이트 읽어오기
-        file.seek(-16, 2)  # 파일 끝에서 16바이트 앞부분으로 이동, whence 2 = 끝에서 부터 커서 이동
-        footer = file.read(16)
+                # Check if we found a valid J record before the Excel signature
+                if closest_j_record_signature_offset != -1:
+                    # Process the found J record
+                    file.seek(closest_j_record_signature_offset)  # Move past the size field
+                    if file.read(len(j_record_signature)) == j_record_signature:
+                        # Check for the same Excel signature in the next log record
+                        file.seek(-8, 1)
+                        log_record_size = int.from_bytes(file.read(2), byteorder='little')
+                        file.seek(log_record_size, 1)
+                       
+                        file.seek(-2,1)
+                        next_chunk_log_record_size = int.from_bytes(file.read(2), byteorder='little')
+                        
+                        if (next_chunk_log_record_size != log_record_size):
+                            counter += 1
+                            excel_index = chunk.find(excel_signature, excel_index + len(excel_signature))
+                            new_counter += 1
+                            continue
+                        
+                        file.seek(-2, 1)
+                        next_chunk = file.read(log_record_size)
+                        if excel_signature in next_chunk:
+                            counter += 1
+                        else:
+                            print("Excel signature not found in the log record")
+                            print(hex(file.tell()))
+                            wiped_checker = True
+                            break  # Exit inner loop if wiped condition is confirmed
+                    else:
+                        print("Invalid J record signature found")
+                
+                # Look for the next occurrence of Excel signature in the same chunk
+                excel_index = chunk.find(excel_signature, excel_index + len(excel_signature))
 
+            # Exit outer loop if wiped condition is confirmed or end of file is reached
+            if wiped_checker or len(chunk) < CHUNK_SIZE:
+                break
+            
+            # Move to the next chunk
+            file_offset += CHUNK_SIZE
 
-        return 
+        # Check if wiped_checker is False after processing
+        if not wiped_checker:
+            print("File does not appear to be wiped.")
 
-def get_file_dir():
-    for current_dir in listdir(CURRENT_DIR):
-        current_path = join(CURRENT_DIR, current_dir)
-        root_path = get_root_path(current_path)
-        target_path = get_target_path(current_path, target_subpath)     
-
-        print(current_path)
-        print(root_path)
-        print(target_path)
-        
-        if check_file_exists(target_path):
-            print("The file or directory exists.")
-        else:
-            print("The file or directory does not exist.")
-        
-def get_root_path(path):
-    drive, _ = os.path.splitdrive(path)
-    return drive if drive else '/'
-
-def get_target_path(current_file_path, target_subpath):
-    # Get the directory of the current file
-    current_dir = os.path.dirname(current_file_path)
-    
-    # Construct the full path to the target
-    target_path = os.path.join(current_dir, target_subpath)
-    
-    # Resolve the absolute path
-    absolute_target_path = os.path.abspath(target_path)
-    
-    return absolute_target_path
-    
-def check_file_exists(absolute_path):
-    return os.path.exists(absolute_path)
 
 def main():
-    get_file_dir()  
-    
-main()
+    detect_wiped(target_wiped_file_path)
 
+if __name__ == "__main__":
+    main()
