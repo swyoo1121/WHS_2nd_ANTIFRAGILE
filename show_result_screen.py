@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import (
-    QTableWidget, QApplication, QAction, 
-    QMessageBox, QTextEdit, QPushButton, QVBoxLayout, 
+    QTableWidget, QApplication, QPushButton, QVBoxLayout, 
     QWidget, QHBoxLayout, QTableWidgetItem, QHeaderView
 )
-from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
+import sys
+import subprocess
 
 class show_result_screen(QWidget):
     def __init__(self):
@@ -26,7 +26,7 @@ class show_result_screen(QWidget):
         self.placeholder.setStyleSheet("background-color: white;")
 
         self.wiping_table = self.create_table(2, ['경로에 파일 존재 여부', '경로'])
-        self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '경로'])
+        self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '시간'])
         self.signature_mod_table = self.create_table(3, ['변조 파일 명', '변조 가능성', '경로'])
 
         self.main_layout.addWidget(self.placeholder)
@@ -34,13 +34,13 @@ class show_result_screen(QWidget):
         self.main_layout.addWidget(self.single_delete_table)
         self.main_layout.addWidget(self.signature_mod_table)
 
-        self.setLayout(self.main_layout) 
+        self.setLayout(self.main_layout)  # Set layout for this widget
 
         self.wiping_button.clicked.connect(self.display_wiping_records)
         self.single_delete_button.clicked.connect(self.display_single_delete_records)
         self.signature_mod_button.clicked.connect(self.display_signature_mod_records)
 
-        self.show_placeholder() 
+        self.show_placeholder()  # Show the placeholder initially
 
     def create_table(self, columns, headers):
         table = QTableWidget()
@@ -59,6 +59,9 @@ class show_result_screen(QWidget):
             }
             QTableWidget { 
                 gridline-color: lightgrey;
+            }
+            QTableWidget::item:selected {
+                color: black;  
             }
         """)
         return table
@@ -89,8 +92,8 @@ class show_result_screen(QWidget):
     def add_wiping_record(self, path):
         self.add_table_row(self.wiping_table, [path])
 
-    def add_single_delete_record(self, file_name, delete_type):
-        self.add_table_row(self.single_delete_table, [file_name, delete_type])
+    def add_single_delete_record(self, file_name, delete_type, timestamp):
+        self.add_table_row(self.single_delete_table, [file_name, delete_type, timestamp])
 
     def add_signature_mod_record(self, file_name, description):
         self.add_table_row(self.signature_mod_table, [file_name, description])
@@ -103,10 +106,22 @@ class show_result_screen(QWidget):
             item.setTextAlignment(Qt.AlignCenter)
             table.setItem(row_position, i, item)
 
+def get_deletion_records():
+    result = subprocess.run([sys.executable, "print_data_del.py"], capture_output=True, text=True)
+    return result.stdout.splitlines()
+
 if __name__ == '__main__':
-    import sys
     app = QApplication(sys.argv)
     main_window = show_result_screen()
     main_window.show()
-    sys.exit(app.exec_())
 
+    # Get the deletion records from the first script
+    deletion_records = get_deletion_records()
+
+    # Process and add the deletion records to the GUI
+    for record in deletion_records:
+        if record.strip():  # Skip empty lines
+            file_name, delete_type, timestamp = map(str.strip, record.split(","))
+            main_window.add_single_delete_record(file_name, delete_type, timestamp)
+
+    sys.exit(app.exec_())

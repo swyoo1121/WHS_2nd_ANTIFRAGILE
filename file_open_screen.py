@@ -3,9 +3,9 @@ import pyewf
 import pytsk3
 import os
 
-class FileOpenScreen(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, title="Antifragile", size=(800, 600))
+class file_open_screen(wx.Frame):
+    def __init__(self):
+        wx.Frame.__init__(self, title="Antifragile", size=(800, 600))
         panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
