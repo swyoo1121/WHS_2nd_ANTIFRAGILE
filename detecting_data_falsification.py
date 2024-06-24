@@ -19,6 +19,11 @@ file_footer_signatures = {
     "ZIP": b"\x50\x4B"
 }
 
+# JPEG 파일 sos 마커 뒷부분 데이터
+sos_marker = b"\xFF\xDA"
+sos_marker_behind = b"\x00\x0C\x03\x01\x00\x02\x11\x03\x11\x00\x3F\x00"
+
+
 def detect_file_type(file_path):
     with open(file_path, "rb") as file:
         # 파일의 헤더 부분 바이트 읽어오기
@@ -44,7 +49,7 @@ def detect_file_type(file_path):
 
         return detected_type, footer_match
 
-# 추가$$ 뒤에 숨겨진 파일이나 데이터 탐지
+# 뒤에 숨겨진 파일이나 데이터 탐지
 def hidden_data_detect(file_path, detected_type, recover_directory):
     # ANTIFRAGILE 복구폴더가 없다면 생성
     if not os.path.exists(recover_directory):
@@ -59,9 +64,10 @@ def hidden_data_detect(file_path, detected_type, recover_directory):
     hidden_data = full_data[hidden_data_start:]
 
     # print(f"{len(footer_signature)}") 테스트
+    #print(f"{len(hidden_data)}")
 
-    if hidden_data == "":
-        print(f"{file_path}: 숨겨진 데이터 X") # 이거 출력 안되는 것 수정필요###############
+    if len(hidden_data) == 0:
+        print(f"{file_path}: 숨겨진 데이터 X") # 여러개 일때 이거 출력 안되는 것 수정필요############### if hidden_data == ""
         return
 
     # 숨겨진 데이터가 있는 경우
@@ -89,25 +95,67 @@ def hidden_data_detect(file_path, detected_type, recover_directory):
     # 숨겨진 데이터 파일로 저장
     with open(file_out, 'wb') as hidden_file:
         hidden_file.write(hidden_data)
+    print(f"{file_path}:숨겨진 데이터 O")
     print(f"{file_path}: 숨겨진 파일 복구 완료 -> {file_out}")
 
 
-def main():
-    # 검사할 디렉토리 경로
-    directory = "C:\\Users\\pcm32\\Desktop\\WHS project program\\test"
-    recover_directory = "C:\\Users\\pcm32\\Desktop\\WHS project program\\test\\ANTIFRAGILE 복구폴더"
+def check_sos_marker(file_path):
+    with open(file_path, "rb") as file:
+        data = file.read()
 
-    # 디렉토리 내의 모든 파일 검사
-    for file_name in os.listdir(directory):
-        file_path = os.path.join(directory, file_name)
-        if os.path.isfile(file_path):
-            detected_type, footer_match = detect_file_type(file_path)
-            if detected_type:
-                if footer_match:
-                    print(f"{file_name}: 원본 파일 확장자는 {detected_type} 입니다. 파일 푸터 시그니처도 같습니다.")
+    # SOS 마커 위치 찾기
+    sos_marker_position = data.find(sos_marker)
+    if sos_marker_position == -1:
+        print(f"{file_path}: SOS 마커를 찾을 수 없습니다.")
+        return False
+
+    # SOS 마커 뒤의 데이터 추출 및 비교
+    sos_data = data[sos_marker_position + len(sos_marker):sos_marker_position + len(sos_marker) + len(sos_marker_behind)]
+    #ex) sos 마커 위치가 0이면 data[2:13]
+
+    if sos_data != sos_marker_behind:
+        # SOS 마커 뒤의 데이터가 변조된 경우, 원래 데이터로 교체
+        repair_data = (data[:sos_marker_position + len(sos_marker)] +
+                         sos_marker_behind +
+                         data[sos_marker_position + len(sos_marker) + len(sos_marker_behind):])
+        return False, repair_data
+
+    return True, None
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python detect_data_falsify.py <file_path>")
+        sys.exit(1)
+
+    file_path = sys.argv[1]
+    recover_directory = "C:\\Users\\pcm32\\Desktop\\WHS project program\\test\\ANTIFRAGILE 복구폴더"
+    # 검사할 디렉토리 경로
+    #directory = "C:\\Users\\pcm32\\Desktop\\WHS project program\\test"
+    #recover_directory = "C:\\Users\\pcm32\\Desktop\\WHS project program\\test\\ANTIFRAGILE 복구폴더"
+
+    detected_type, footer_match = detect_file_type(file_path)
+    if detected_type:
+        if footer_match:
+            print(f"{file_path}: 원본 파일 확장자는 {detected_type} 입니다. 파일 푸터 시그니처도 같습니다.")
+            hidden_data_detect(file_path, detected_type, recover_directory)
+            if detected_type == "JPEG":
+                sos_correct, repair_data = check_sos_marker(file_path)
+                if sos_correct:
+                    print(f"{file_path}: SOS 마커 부분이 변조되지 않았습니다.")
                 else:
-                    hidden_data_detect(file_path, detected_type, recover_directory)
-            else:
-                print(f"{file_name}: 변조 가능성 or Unknown file type")
-            
-main()
+                    print(f"{file_path}: SOS 마커 부분이 변조되었습니다. 복구를 시도합니다.")
+                    index = len(os.listdir(recover_directory)) + 1
+                    repaired_file_path = os.path.join(recover_directory, f"복구파일_{index}.jpg")
+                    with open(repaired_file_path, "wb") as file:
+                        file.write(repair_data)
+                    print(f"{file_path}: SOS 마커 부분이 복구된 파일이 생성되었습니다 -> {repaired_file_path}")
+                    hidden_data_detect(repaired_file_path, detected_type, recover_directory)
+        else:
+            print(f"{file_path}: 헤더 시그니처가 변경되었습니다.")
+            hidden_data_detect(file_path, detected_type, recover_directory)
+    else:
+        print(f"{file_path}: 변조 가능성 or Unknown file type")
+
+if __name__ == "__main__":
+    main()
