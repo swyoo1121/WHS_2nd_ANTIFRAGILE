@@ -51,7 +51,7 @@ class MyWindow(QMainWindow):
         # Help Menu
         helpMenu = menubar.addMenu('&Help')
         helpMenu.addAction('&About us')
-        
+
     # 화면 분할 구현. 왼쪽(파일 열기 = file_open_screen.py) + 오른쪽(출력 화면 = show_result_screen.py)으로 구성.
     def screen_split(self):
         splitter = QSplitter(Qt.Horizontal)
@@ -90,6 +90,9 @@ class MyWindow(QMainWindow):
             self.analyze_file(file_path)
 
     def analyze_file(self, file_path):
+        # 기존 테이블 데이터 초기화
+        self.result_screen_widget.clear_tables()
+
         # 삭제 기록 불러오기
         deletion_records = get_deletion_records(file_path)
         for record in deletion_records:
@@ -97,10 +100,27 @@ class MyWindow(QMainWindow):
                 file_name, delete_type, timestamp = map(str.strip, record.split(","))
                 self.result_screen_widget.add_single_delete_record(file_name, delete_type, timestamp)
 
+        # 와이핑 기록 불러오기
+        wiping_records = get_wiping_records(file_path)
+        for record in wiping_records:
+            if record.strip():  # 빈 줄 건너뛰기
+                file_exists, path = map(str.strip, record.split(","))
+                self.result_screen_widget.add_wiping_record(file_exists, path)
+
+        # 데이터 변조 기록 불러오기
+        signature_mod_records = get_signature_mod_records(file_path)
+        for record in signature_mod_records:
+            if record.strip():  # 빈 줄 건너뛰기
+                file_name, mod_possibility, path = map(str.strip, record.split(","))
+                self.result_screen_widget.add_signature_mod_record(file_name, mod_possibility, path)
+
     def display_deletion_records(self):
         self.result_screen_widget.display_single_delete_records()
 
     def load_records(self):
+        # 기존 테이블 데이터 초기화
+        self.result_screen_widget.clear_tables()
+
         # 단순 삭제 기록 불러오기
         deletion_records = get_deletion_records("default_file_path")  # 필요 시 실제 기본 경로로 교체
         for record in deletion_records:
@@ -109,14 +129,14 @@ class MyWindow(QMainWindow):
                 self.result_screen_widget.add_single_delete_record(file_name, delete_type, timestamp)
 
         # 와이핑 삭제 기록 불러오기
-        wiping_records = get_wiping_records()
+        wiping_records = get_wiping_records("default_file_path")
         for record in wiping_records:
             if record.strip():  # 빈 줄 건너뛰기
                 file_exists, path = map(str.strip, record.split(","))
                 self.result_screen_widget.add_wiping_record(file_exists, path)
 
         # 데이터 변조 기록 불러오기
-        signature_mod_records = get_signature_mod_records()
+        signature_mod_records = get_signature_mod_records("default_file_path")
         for record in signature_mod_records:
             if record.strip():  # 빈 줄 건너뛰기
                 file_name, mod_possibility, path = map(str.strip, record.split(","))
@@ -127,12 +147,12 @@ def get_deletion_records(file_path):
     result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True)
     return result.stdout.splitlines()
 
-def get_wiping_records():
-    result = subprocess.run([sys.executable, "print_wiping.py"], capture_output=True, text=True)
+def get_wiping_records(file_path):
+    result = subprocess.run([sys.executable, "print_wiping.py", file_path], capture_output=True, text=True)
     return result.stdout.splitlines()
 
-def get_signature_mod_records():
-    result = subprocess.run([sys.executable, "detecting_data_falsification.py"], capture_output=True, text=True)
+def get_signature_mod_records(file_path):
+    result = subprocess.run([sys.executable, "detecting_data_falsification.py", file_path], capture_output=True, text=True)
     return result.stdout.splitlines()
 
 if __name__ == '__main__':
