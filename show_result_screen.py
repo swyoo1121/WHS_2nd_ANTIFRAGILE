@@ -116,7 +116,7 @@ class show_result_screen(QWidget):
             
 # 단순 삭제 기록 가져오는 부분
 def get_deletion_records():
-    result = subprocess.run([sys.executable, "print_data_del.py"], capture_output=True, text=True)
+    result = subprocess.run([sys.executable, "simple_delete_detection.py"], capture_output=True, text=True)
     return result.stdout.splitlines()
 # 와이핑 기록 가져오는 부분
 def get_wiping_records():  
