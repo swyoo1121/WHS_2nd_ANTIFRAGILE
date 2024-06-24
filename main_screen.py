@@ -54,7 +54,7 @@ class MyWindow(QMainWindow):
     def screen_split(self):
         splitter = QSplitter(Qt.Horizontal)
 
-        self.open_screen_widget = file_open_screen()  # 파일 열기 화면 위젯 (파일 열기 화면 구현 부분은 주어지지 않았습니다)
+        self.open_screen_widget = file_open_screen()  # 파일 열기 화면 위젯 
         self.result_screen_widget = show_result_screen()
 
         splitter.addWidget(self.open_screen_widget)
@@ -84,7 +84,7 @@ class MyWindow(QMainWindow):
     def new_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open evidence item", "", "All Files (*)")
         if file_path:
-            self.open_screen_widget.load_file(file_path)  # 파일 열기 화면에서 파일 로드 (해당 메서드는 파일 열기 화면에서 정의되어야 합니다)
+            self.open_screen_widget.load_file(file_path)  # 파일 열기 화면에서 파일 로드 
             self.result_screen_widget.analyze_file(file_path)
 
     def display_deletion_records(self):
