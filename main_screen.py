@@ -124,7 +124,7 @@ class MyWindow(QMainWindow):
 
 # 외부 스크립트를 실행하여 기록을 가져오는 함수
 def get_deletion_records(file_path):
-    result = subprocess.run([sys.executable, "print_data_del.py", file_path], capture_output=True, text=True)
+    result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True)
     return result.stdout.splitlines()
 
 def get_wiping_records():
@@ -132,7 +132,7 @@ def get_wiping_records():
     return result.stdout.splitlines()
 
 def get_signature_mod_records():
-    result = subprocess.run([sys.executable, "print_data_fals.py"], capture_output=True, text=True)
+    result = subprocess.run([sys.executable, "detecting_data_falsification.py"], capture_output=True, text=True)
     return result.stdout.splitlines()
 
 if __name__ == '__main__':
