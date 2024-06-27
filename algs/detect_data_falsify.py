@@ -20,6 +20,15 @@ file_footer_signatures = {
     "ZIP": b"\x50\x4B"
 }
 
+file_extensions = {
+    "JPEG": [".jpg", ".jpeg"],
+    "PNG": [".png"],
+    "PDF": [".pdf"],
+    "ZIP": [".zip"],
+    "GIF": [".gif"],
+    "BMP": [".bmp"]
+}
+
 # JPEG 파일 sos 마커 뒷부분 데이터
 sos_marker = b"\xFF\xDA"
 sos_marker_behind = b"\x00\x0C\x03\x01\x00\x02\x11\x03\x11\x00\x3F\x00"
@@ -49,6 +58,15 @@ def detect_file_type(file_path):
                 footer_match = True
 
         return detected_type, footer_match
+
+#코드 변경 후 파일 확장자 비교부분 따로 추가
+def check_file_extension(file_path, detected_type):
+    _, file_extension = os.path.splitext(file_path)
+    file_extension = file_extension.lower()
+    
+    if detected_type in file_extensions:
+        return file_extension in file_extensions[detected_type]
+    return False
 
 # 뒤에 숨겨진 파일이나 데이터 탐지
 def hidden_data_detect(file_path, detected_type, recover_directory):
@@ -118,32 +136,37 @@ def check_sos_marker(file_path):
 
 def process_file(file_path, recover_directory):
     filename = os.path.basename(file_path)
-    falsify_type = "정상"
+    falsify_types = []
     recovery_path = "없음"
 
     detected_type, footer_match = detect_file_type(file_path)
 
     if detected_type:
-        if footer_match:
-            hidden_data_path = hidden_data_detect(file_path, detected_type, recover_directory)
-            if hidden_data_path:
-                falsify_type = "숨겨진 데이터 탐지"
-                recovery_path = hidden_data_path
-            
-            if detected_type == "JPEG":
-                sos_correct, repair_data = check_sos_marker(file_path)
-                if not sos_correct:
-                    falsify_type = "SOS 마커 변조"
-                    index = len(os.listdir(recover_directory)) + 1
-                    repaired_file_path = os.path.join(recover_directory, f"복구파일_{index}.jpg")
-                    with open(repaired_file_path, "wb") as file:
-                        file.write(repair_data)
-                    recovery_path = repaired_file_path
-        else:
-            falsify_type = "헤더 시그니처 변조"
-            recovery_path = hidden_data_detect(file_path, detected_type, recover_directory) or "없음"
+        extension_match = check_file_extension(file_path, detected_type)
+        if not extension_match:
+            falsify_types.append("파일 확장자 불일치")
+        
+        if not footer_match:
+            falsify_types.append("푸터 시그니처 변조")
+        
+        hidden_data_path = hidden_data_detect(file_path, detected_type, recover_directory)
+        if hidden_data_path:
+            falsify_types.append("숨겨진 데이터 탐지")
+            recovery_path = hidden_data_path
+        
+        if detected_type == "JPEG":
+            sos_correct, repair_data = check_sos_marker(file_path)
+            if not sos_correct:
+                falsify_types.append("SOS 마커 변조")
+                index = len(os.listdir(recover_directory)) + 1
+                repaired_file_path = os.path.join(recover_directory, f"복구파일_{index}.jpg")
+                with open(repaired_file_path, "wb") as file:
+                    file.write(repair_data)
+                recovery_path = repaired_file_path
     else:
-        falsify_type = "변조 가능성 또는 알 수 없는 파일 형식"
+        falsify_types.append("변조 가능성 또는 알 수 없는 파일 형식")
+
+    falsify_type = ", ".join(falsify_types) if falsify_types else "정상"
 
     formatted_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"{filename}, {falsify_type}, {recovery_path}, {formatted_timestamp}")
