@@ -9,13 +9,13 @@ def detect_wiped(file_path):
     if not os.path.isfile(file_path):
         print(f"File not found: {file_path}")
         return
-    else:
-        print("File found")
         
     wiped_checker = False
     file_offset = 0
     counter = 0
     new_counter = 0
+    
+    result_wiped = False
     
     with open(file_path, "rb") as file:
         while True:
@@ -58,8 +58,8 @@ def detect_wiped(file_path):
                             counter += 1
                         else:
                             print("Excel signature not found in the log record")
-                            print(hex(file.tell()))
                             wiped_checker = True
+                            result_wiped = True
                             break  # Exit inner loop if wiped condition is confirmed
                     else:
                         print("Invalid J record signature found")
@@ -77,6 +77,8 @@ def detect_wiped(file_path):
         # Check if wiped_checker is False after processing
         if not wiped_checker:
             print("File does not appear to be wiped.")
+            
+    return result_wiped
 
 
 def main():

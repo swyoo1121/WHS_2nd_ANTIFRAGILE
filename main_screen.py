@@ -24,27 +24,37 @@ class MyWindow(QMainWindow):
         menubar = self.menuBar()
 
         # 파일 메뉴 설정
-        fileMenu = menubar.addMenu('&File')
+        file_menu = menubar.addMenu('&File')
 
-        exitAction = QAction(QIcon("images/exit_icon.png"), '&Exit', self)
-        exitAction.setShortcut('Ctrl+E')
-        exitAction.triggered.connect(self.confirm_exit)
+        open_menu = QMenu('&Open', self)
+        new_file_action = QAction(QIcon("images/newfile_icon.png"), '&New', self)
+        new_file_action.setShortcut('Ctrl+N')
+        new_file_action.triggered.connect(self.new_file)
+        recent_file_action = QAction('&Recent', self)
+        open_menu.addAction(new_file_action)
+        open_menu.addAction(recent_file_action)
 
-        openMenu = QMenu('&Open', self)
-        newFileAction = QAction(QIcon("images/newfile_icon.png"), '&New', self)
-        newFileAction.setShortcut('Ctrl+N')
-        newFileAction.triggered.connect(self.new_file)
-        recentFileAction = QAction('&Recent', self)
-        openMenu.addAction(newFileAction)
-        openMenu.addAction(recentFileAction)
+        exit_action = QAction(QIcon("images/exit_icon.png"), '&Exit', self)
+        exit_action.setShortcut('Ctrl+E')
+        exit_action.triggered.connect(self.confirm_exit)
 
-        fileMenu.addMenu(openMenu)
-        fileMenu.addAction(exitAction)
+        file_menu.addMenu(open_menu)
+        file_menu.addAction(exit_action)
 
         # 도구 메뉴 설정
-        toolMenu = menubar.addMenu('&Tools')
-        analyzeAction = QAction(QIcon("images/analyze_icon.png"), '&Analyze', self)
-        toolMenu.addAction(analyzeAction)
+        tool_menu = menubar.addMenu('&Tools')
+        
+        analyze_menu = QMenu('&Analyze', self)
+        analyze_wiping_action = QAction('&Analyze Wiping', self)
+        analyze_falsification_action = QAction('&Analyze Falsification', self)
+        analyze_deletion_action = QAction('&Analyze Deletion', self)
+        analyze_menu.addAction(analyze_wiping_action)
+        analyze_menu.addAction(analyze_falsification_action)
+        analyze_menu.addAction(analyze_deletion_action)
+        search_action = QAction(QIcon("images/analyze_icon.png"), '&Search', self)
+        
+        tool_menu.addMenu(analyze_menu)
+        tool_menu.addAction(search_action)
 
         # 도움말 메뉴 설정
         helpMenu = menubar.addMenu('&Help')
@@ -77,7 +87,7 @@ class MyWindow(QMainWindow):
         if reply == QMessageBox.Yes:
             QApplication.instance().quit()
 
-    def closeEvent(self, event):  # closeEvent 재정의
+    def closeEvent(self, event):  # closeEvent 재정의 (Code Convention)
         self.confirm_exit()
         event.ignore()
 
