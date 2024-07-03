@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+    QPushButton, QTableWidget, QTableWidgetItem,
+    QLineEdit, QLabel, QHeaderView, QAbstractItemView
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 import subprocess
 import sys
 
@@ -25,33 +27,64 @@ class show_result_screen(QWidget):
         self.placeholder = QWidget()
         self.placeholder.setStyleSheet("background-color: white;")
 
-        self.wiping_table = self.create_table(2, ['경로에 파일 존재 여부', '경로'])
-        self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '시간'])
-        self.signature_mod_table = self.create_table(3, ['파일 명', '변조 가능성', '복구 경로'])
+        self.search_layout = QHBoxLayout()
+        self.search_label = QLabel("Find : ")
+        self.search_bar = QLineEdit()
+        self.search_button = QPushButton("Search")
+        self.clear_search_button = QPushButton("X")
+        self.search_layout.addWidget(self.search_label)
+        self.search_layout.addWidget(self.search_bar)
+        self.search_layout.addWidget(self.search_button)
+        self.search_layout.addWidget(self.clear_search_button)
 
-        self.main_layout.addWidget(self.placeholder)
+        self.wiping_table = self.create_table(2, ['와이핑된 파일', ' 와이핑 흔적 발견'])
+        self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '시간'])
+        self.signature_mod_table = self.create_table(4, ['파일 명', '변조 가능성', '복구 경로', '시간'])
+
         self.main_layout.addWidget(self.wiping_table)
         self.main_layout.addWidget(self.single_delete_table)
         self.main_layout.addWidget(self.signature_mod_table)
+        self.main_layout.addWidget(self.placeholder)
+        self.main_layout.addLayout(self.search_layout)
 
-        self.setLayout(self.main_layout)  
+        self.setLayout(self.main_layout)  # Set layout for this widget
 
         self.wiping_button.clicked.connect(self.display_wiping_records)
         self.single_delete_button.clicked.connect(self.display_single_delete_records)
         self.signature_mod_button.clicked.connect(self.display_signature_mod_records)
+        self.search_button.clicked.connect(self.search_records)
+        self.clear_search_button.clicked.connect(self.clear_search)
 
         self.show_placeholder()  # Show the placeholder initially
+
+        self.search_bar.setAlignment(Qt.AlignCenter)  # Center text input
+
+        # 테이블의 가로 스크롤바를 필요할 때만 표시하도록 설정
+        self.wiping_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.single_delete_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.signature_mod_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # 세로 스크롤바 설정
+        self.wiping_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.single_delete_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.signature_mod_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # 단순 삭제 테이블의 열을 자동으로 채우도록 설정
+        self.single_delete_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # 데이터 변조 테이블의 열을 내용에 맞게 조정
+        self.signature_mod_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
     def create_table(self, columns, headers):
         table = QTableWidget()
         table.setRowCount(0)
         table.setColumnCount(columns)
         table.setHorizontalHeaderLabels(headers)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
         table.horizontalHeader().setStyleSheet(
             "QHeaderView::section {border-bottom: 1px solid black; text-align: center;}")
         table.verticalHeader().setVisible(False)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         table.setStyleSheet("""
             QTableWidget::item { 
                 border-bottom: 1px solid lightgrey; 
@@ -61,7 +94,7 @@ class show_result_screen(QWidget):
                 gridline-color: lightgrey;
             }
             QTableWidget::item:selected {
-                color: black;  
+                color: black;  /* 선택된 셀의 글자색을 변경하지 않도록 설정 */
             }
         """)
         return table
@@ -78,6 +111,7 @@ class show_result_screen(QWidget):
     def display_table(self, table):
         self.hide_all_tables()
         table.show()
+        self.adjust_table_columns(table)
 
     def hide_all_tables(self):
         self.wiping_table.hide()
@@ -89,14 +123,14 @@ class show_result_screen(QWidget):
         self.hide_all_tables()
         self.placeholder.show()
 
-    def add_wiping_record(self, file_exists, path):
-        self.add_table_row(self.wiping_table, [file_exists, path])
+    def add_wiping_record(self, file_name, wiping_trace):
+        self.add_table_row(self.wiping_table, [file_name, wiping_trace])
 
     def add_single_delete_record(self, file_name, delete_type, timestamp):
         self.add_table_row(self.single_delete_table, [file_name, delete_type, timestamp])
 
-    def add_signature_mod_record(self, file_name, mod_possibility, path):
-        self.add_table_row(self.signature_mod_table, [file_name, mod_possibility, path])
+    def add_signature_mod_record(self, file_name, mod_possibility, path, timestamp):
+        self.add_table_row(self.signature_mod_table, [file_name, mod_possibility, path, timestamp])
 
     def add_table_row(self, table, data):
         row_position = table.rowCount()
@@ -105,6 +139,7 @@ class show_result_screen(QWidget):
             item = QTableWidgetItem(value)
             item.setTextAlignment(Qt.AlignCenter)
             table.setItem(row_position, i, item)
+        self.adjust_table_columns(table)
 
     def clear_tables(self):
         self.wiping_table.setRowCount(0)
@@ -115,7 +150,7 @@ class show_result_screen(QWidget):
         # 기존 테이블 데이터 초기화
         self.clear_tables()
 
-        # 단순순 삭제 기록 불러오기
+        # 삭제 기록 불러오기
         deletion_records = self.get_deletion_records(file_path)
         for record in deletion_records:
             if record.strip():  # 빈 줄 건너뛰기
@@ -126,22 +161,22 @@ class show_result_screen(QWidget):
         wiping_records = self.get_wiping_records(file_path)
         for record in wiping_records:
             if record.strip():  # 빈 줄 건너뛰기
-                file_exists, path = map(str.strip, record.split(","))
-                self.add_wiping_record(file_exists, path)
+                file_name, wiping_trace = map(str.strip, record.split(","))
+                self.add_wiping_record(file_name, wiping_trace)
 
         # 데이터 변조 기록 불러오기
         signature_mod_records = self.get_signature_mod_records(file_path)
         for record in signature_mod_records:
             if record.strip():  # 빈 줄 건너뛰기
-                file_name, mod_possibility, path = map(str.strip, record.split(","))
-                self.add_signature_mod_record(file_name, mod_possibility, path)
+                file_name, mod_possibility, path, timestamp = map(str.strip, record.split(","))
+                self.add_signature_mod_record(file_name, mod_possibility, path, timestamp)
 
     def load_records(self):
         # 기존 테이블 데이터 초기화
         self.clear_tables()
 
         # 단순 삭제 기록 불러오기
-        deletion_records = self.get_deletion_records("default_file_path")  
+        deletion_records = self.get_deletion_records("default_file_path")  # 필요 시 실제 기본 경로로 교체
         for record in deletion_records:
             if record.strip():  # 빈 줄 건너뛰기
                 file_name, delete_type, timestamp = map(str.strip, record.split(","))
@@ -151,25 +186,81 @@ class show_result_screen(QWidget):
         wiping_records = self.get_wiping_records("default_file_path")
         for record in wiping_records:
             if record.strip():  # 빈 줄 건너뛰기
-                file_exists, path = map(str.strip, record.split(","))
-                self.add_wiping_record(file_exists, path)
+                file_name, wiping_trace = map(str.strip, record.split(","))
+                self.add_wiping_record(file_name, wiping_trace)
 
         # 데이터 변조 기록 불러오기
         signature_mod_records = self.get_signature_mod_records("default_file_path")
         for record in signature_mod_records:
             if record.strip():  # 빈 줄 건너뛰기
-                file_name, mod_possibility, path = map(str.strip, record.split(","))
-                self.add_signature_mod_record(file_name, mod_possibility, path)
+                file_name, mod_possibility, path, timestamp = map(str.strip, record.split(","))
+                self.add_signature_mod_record(file_name, mod_possibility, path, timestamp)
 
     # 외부 스크립트를 실행하여 기록을 가져오는 함수
     def get_deletion_records(self, file_path):
-        result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True, encoding='utf-8')
         return result.stdout.splitlines()
 
     def get_wiping_records(self, file_path):
-        result = subprocess.run([sys.executable, "print_wiping.py", file_path], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "print_wiping.py", file_path], capture_output=True, text=True, encoding='utf-8')
         return result.stdout.splitlines()
 
     def get_signature_mod_records(self, file_path):
-        result = subprocess.run([sys.executable, "detecting_data_falsification.py", file_path], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "detect_data_falsify.py", file_path], capture_output=True, text=True, encoding='utf-8')
         return result.stdout.splitlines()
+
+    def search_records(self):
+        search_term = self.search_bar.text()
+        if self.wiping_table.isVisible():
+            self.filter_table(self.wiping_table, search_term)
+        elif self.single_delete_table.isVisible():
+            self.filter_table(self.single_delete_table, search_term)
+        elif self.signature_mod_table.isVisible():
+            self.filter_table(self.signature_mod_table, search_term)
+
+    def filter_table(self, table, search_term):
+        for row in range(table.rowCount()):
+            match = False
+            for column in range(table.columnCount()):
+                item = table.item(row, column)
+                if search_term.lower() in item.text().lower():
+                    match = True
+                    break
+            table.setRowHidden(row, not match)
+
+    def clear_search(self):
+        self.search_bar.clear()
+        if self.wiping_table.isVisible():
+            self.reset_table_filter(self.wiping_table)
+        elif self.single_delete_table.isVisible():
+            self.reset_table_filter(self.single_delete_table)
+        elif self.signature_mod_table.isVisible():
+            self.reset_table_filter(self.signature_mod_table)
+
+    def reset_table_filter(self, table):
+        for row in range(table.rowCount()):
+            for column in range(table.columnCount()):
+                item = table.item(row, column)
+                item.setBackground(QColor("white"))  
+            table.setRowHidden(row, False)
+
+    def adjust_table_columns(self, table):
+        table.resizeColumnsToContents()
+        header = table.horizontalHeader()
+        if table == self.signature_mod_table:
+            header.setSectionResizeMode(QHeaderView.ResizeToContents)
+            for column in range(table.columnCount()):
+                if table.columnWidth(column) > 300:
+                    header.setSectionResizeMode(column, QHeaderView.Interactive)
+                    table.setColumnWidth(column, 300)
+                else:
+                    header.setSectionResizeMode(column, QHeaderView.Stretch)
+        else:
+            header.setSectionResizeMode(QHeaderView.Stretch)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main_window = show_result_screen()
+    main_window.resize(800, 600)
+    main_window.show()
+    sys.exit(app.exec_())
