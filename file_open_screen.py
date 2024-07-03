@@ -84,7 +84,6 @@
 #         return self._ewf_handle.get_media_size()
 
 
-
 from PyQt5.QtWidgets import QVBoxLayout, QWidget, QTreeWidget, QTreeWidgetItem
 import pytsk3
 import pyewf
