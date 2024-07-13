@@ -36,11 +36,14 @@ Setup description
 ### Prerequisites
 
 - List of programs/languages/frameworks required prior to installin the project
+- Libraries : os, sys
 
 ### Installation
 
 ```bash
-code for installation
+pip install PyQt5
+pip install pytsk3
+pip install libewf-python
 ```
 
 ## Usage
