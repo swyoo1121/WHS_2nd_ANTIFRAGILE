@@ -1,7 +1,8 @@
+#### 파일 넣어서 출력한 후에 .001파일 넣어서 엔트리 확인은 안됨 -> errors='ignore' 넣어서 문제 없이 돌아감
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QTableWidget, QTableWidgetItem,
-    QLineEdit, QLabel, QHeaderView, QAbstractItemView
+    QLineEdit, QLabel, QHeaderView, QAbstractItemView, QComboBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -14,7 +15,7 @@ class show_result_screen(QWidget):
 
         self.button_layout = QHBoxLayout()
         self.wiping_button = QPushButton("와이핑")
-        self.single_delete_button = QPushButton("단순삭제")
+        self.single_delete_button = QPushButton("완전 삭제")
         self.signature_mod_button = QPushButton("데이터 변조")
 
         self.button_layout.addWidget(self.wiping_button)
@@ -30,14 +31,16 @@ class show_result_screen(QWidget):
         self.search_layout = QHBoxLayout()
         self.search_label = QLabel("Find : ")
         self.search_bar = QLineEdit()
+        self.search_options = QComboBox()
         self.search_button = QPushButton("Search")
         self.clear_search_button = QPushButton("X")
         self.search_layout.addWidget(self.search_label)
         self.search_layout.addWidget(self.search_bar)
+        self.search_layout.addWidget(self.search_options)
         self.search_layout.addWidget(self.search_button)
         self.search_layout.addWidget(self.clear_search_button)
 
-        self.wiping_table = self.create_table(2, ['와이핑된 파일', ' 와이핑 흔적 발견'])
+        self.wiping_table = self.create_table(2, ['와이핑된 파일', '와이핑 흔적 발견'])
         self.single_delete_table = self.create_table(3, ['파일 명', '삭제 유형', '시간'])
         self.signature_mod_table = self.create_table(4, ['파일 명', '변조 가능성', '복구 경로', '시간'])
 
@@ -75,6 +78,8 @@ class show_result_screen(QWidget):
         # 데이터 변조 테이블의 열을 내용에 맞게 조정
         self.signature_mod_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
+        self.wiping_results = None  # Store wiping results
+
     def create_table(self, columns, headers):
         table = QTableWidget()
         table.setRowCount(0)
@@ -100,12 +105,23 @@ class show_result_screen(QWidget):
         return table
 
     def display_wiping_records(self):
+        self.search_options.clear()
+        self.search_options.addItems(["공통", "파일", "흔적"])
+        self.center_align_combobox_text(self.search_options)
+        if self.wiping_results is None:
+            self.load_wiping_results()
         self.display_table(self.wiping_table)
 
     def display_single_delete_records(self):
+        self.search_options.clear()
+        self.search_options.addItems(["공통", "파일명", "삭제유형", "시간"])
+        self.center_align_combobox_text(self.search_options)
         self.display_table(self.single_delete_table)
 
     def display_signature_mod_records(self):
+        self.search_options.clear()
+        self.search_options.addItems(["공통", "파일명", "변조가능성", "복구경로", "시간"])
+        self.center_align_combobox_text(self.search_options)
         self.display_table(self.signature_mod_table)
 
     def display_table(self, table):
@@ -129,8 +145,8 @@ class show_result_screen(QWidget):
     def add_single_delete_record(self, file_name, delete_type, timestamp):
         self.add_table_row(self.single_delete_table, [file_name, delete_type, timestamp])
 
-    def add_signature_mod_record(self, file_name, mod_possibility, path, timestamp):
-        self.add_table_row(self.signature_mod_table, [file_name, mod_possibility, path, timestamp])
+    def add_signature_mod_record(self, file_name, falsify_type, recovery_path, formatted_timestamp):
+        self.add_table_row(self.signature_mod_table, [file_name, falsify_type, recovery_path, formatted_timestamp])
 
     def add_table_row(self, table, data):
         row_position = table.rowCount()
@@ -147,85 +163,123 @@ class show_result_screen(QWidget):
         self.signature_mod_table.setRowCount(0)
 
     def analyze_file(self, file_path):
-        # 기존 테이블 데이터 초기화
         self.clear_tables()
 
-        # 삭제 기록 불러오기
         deletion_records = self.get_deletion_records(file_path)
         for record in deletion_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, delete_type, timestamp = map(str.strip, record.split(","))
-                self.add_single_delete_record(file_name, delete_type, timestamp)
+            if record.strip():
+                try:
+                    file_name, delete_type, timestamp = map(str.strip, record.split(","))
+                    self.add_single_delete_record(file_name, delete_type, timestamp)
+                except ValueError:
+                    print(f"Skipping invalid record: {record}")
 
-        # 와이핑 기록 불러오기
         wiping_records = self.get_wiping_records(file_path)
         for record in wiping_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, wiping_trace = map(str.strip, record.split(","))
-                self.add_wiping_record(file_name, wiping_trace)
+            if record.strip():
+                try:
+                    file_name, wiping_trace = map(str.strip, record.split(","))
+                    self.add_wiping_record(file_name, wiping_trace)
+                except ValueError:
+                    print(f"Skipping invalid record: {record}")
 
-        # 데이터 변조 기록 불러오기
         signature_mod_records = self.get_signature_mod_records(file_path)
         for record in signature_mod_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, mod_possibility, path, timestamp = map(str.strip, record.split(","))
-                self.add_signature_mod_record(file_name, mod_possibility, path, timestamp)
+            if record.strip():
+                fields = record.split(",")
+                if len(fields) >= 4:
+                    file_name = fields[0].strip()
+                    falsify_type = ",".join(fields[1:-2]).strip()
+                    recovery_path = fields[-2].strip()
+                    formatted_timestamp = fields[-1].strip()
+                    self.add_signature_mod_record(file_name, falsify_type, recovery_path, formatted_timestamp)
+                else:
+                    print(f"Skipping invalid record: {record}")
 
     def load_records(self):
-        # 기존 테이블 데이터 초기화
         self.clear_tables()
 
-        # 단순 삭제 기록 불러오기
-        deletion_records = self.get_deletion_records("default_file_path")  # 필요 시 실제 기본 경로로 교체
+        deletion_records = self.get_deletion_records("default_file_path")
         for record in deletion_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, delete_type, timestamp = map(str.strip, record.split(","))
-                self.add_single_delete_record(file_name, delete_type, timestamp)
+            if record.strip():
+                try:
+                    file_name, delete_type, timestamp = map(str.strip, record.split(","))
+                    self.add_single_delete_record(file_name, delete_type, timestamp)
+                except ValueError:
+                    print(f"Skipping invalid record: {record}")
 
-        # 와이핑 삭제 기록 불러오기
         wiping_records = self.get_wiping_records("default_file_path")
         for record in wiping_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, wiping_trace = map(str.strip, record.split(","))
-                self.add_wiping_record(file_name, wiping_trace)
+            if record.strip():
+                try:
+                    file_name, wiping_trace = map(str.strip, record.split(","))
+                    self.add_wiping_record(file_name, wiping_trace)
+                except ValueError:
+                    print(f"Skipping invalid record: {record}")
 
-        # 데이터 변조 기록 불러오기
         signature_mod_records = self.get_signature_mod_records("default_file_path")
         for record in signature_mod_records:
-            if record.strip():  # 빈 줄 건너뛰기
-                file_name, mod_possibility, path, timestamp = map(str.strip, record.split(","))
-                self.add_signature_mod_record(file_name, mod_possibility, path, timestamp)
+            if record.strip():
+                fields = record.split(",")
+                if len(fields) >= 4:
+                    file_name = fields[0].strip()
+                    falsify_type = ",".join(fields[1:-2]).strip()
+                    recovery_path = fields[-2].strip()
+                    formatted_timestamp = fields[-1].strip()
+                    self.add_signature_mod_record(file_name, falsify_type, recovery_path, formatted_timestamp)
+                else:
+                    print(f"Skipping invalid record: {record}")
 
-    # 외부 스크립트를 실행하여 기록을 가져오는 함수
     def get_deletion_records(self, file_path):
-        result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run([sys.executable, "simple_delete_detection.py", file_path], capture_output=True, text=True, encoding='utf-8', errors='ignore')
         return result.stdout.splitlines()
 
-    def get_wiping_records(self, file_path):
-        result = subprocess.run([sys.executable, "print_wiping.py", file_path], capture_output=True, text=True, encoding='utf-8')
-        return result.stdout.splitlines()
+    def get_wiping_records(self, _):
+        result = subprocess.run([sys.executable, "print_wiping.py"], capture_output=True, text=True, encoding='cp949', errors='ignore')
+        self.wiping_results = result.stdout.splitlines()
+        return self.wiping_results
 
     def get_signature_mod_records(self, file_path):
-        result = subprocess.run([sys.executable, "detect_data_falsify.py", file_path], capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run([sys.executable, "detect_data_falsify.py", file_path], capture_output=True, text=True, encoding='cp949', errors='ignore')
         return result.stdout.splitlines()
+
+    def load_wiping_results(self):
+        self.clear_tables()
+        wiping_records = self.get_wiping_records("default_file_path")
+        for record in wiping_records:
+            if record.strip():
+                try:
+                    file_name, wiping_trace = map(str.strip, record.split(","))
+                    self.add_wiping_record(file_name, wiping_trace)
+                except ValueError:
+                    print(f"Skipping invalid record: {record}")
 
     def search_records(self):
         search_term = self.search_bar.text()
+        search_option = self.search_options.currentText()
         if self.wiping_table.isVisible():
-            self.filter_table(self.wiping_table, search_term)
+            self.filter_table(self.wiping_table, search_term, search_option)
         elif self.single_delete_table.isVisible():
-            self.filter_table(self.single_delete_table, search_term)
+            self.filter_table(self.single_delete_table, search_term, search_option)
         elif self.signature_mod_table.isVisible():
-            self.filter_table(self.signature_mod_table, search_term)
+            self.filter_table(self.signature_mod_table, search_term, search_option)
 
-    def filter_table(self, table, search_term):
+    def filter_table(self, table, search_term, search_option):
         for row in range(table.rowCount()):
             match = False
             for column in range(table.columnCount()):
                 item = table.item(row, column)
-                if search_term.lower() in item.text().lower():
-                    match = True
-                    break
+                if search_option == "공통" or \
+                   (search_option == "파일" and column == 1 and self.wiping_table.isVisible()) or \
+                   (search_option == "흔적" and column == 0 and self.wiping_table.isVisible()) or \
+                   (search_option == "파일명" and column == 0) or \
+                   (search_option == "삭제유형" and column == 1 and self.single_delete_table.isVisible()) or \
+                   (search_option == "시간" and column == table.columnCount() - 1) or \
+                   (search_option == "변조가능성" and column == 1 and self.signature_mod_table.isVisible()) or \
+                   (search_option == "복구경로" and column == 2 and self.signature_mod_table.isVisible()):
+                    if search_term.lower() in item.text().lower():
+                        match = True
+                        break
             table.setRowHidden(row, not match)
 
     def clear_search(self):
@@ -258,9 +312,14 @@ class show_result_screen(QWidget):
         else:
             header.setSectionResizeMode(QHeaderView.Stretch)
 
+    def center_align_combobox_text(self, combobox):
+        for i in range(combobox.count()):
+            combobox.setItemData(i, Qt.AlignCenter, Qt.TextAlignmentRole)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = show_result_screen()
     main_window.resize(800, 600)
     main_window.show()
     sys.exit(app.exec_())
+
