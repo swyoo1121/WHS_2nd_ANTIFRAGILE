@@ -1,14 +1,11 @@
-### library, global variables start
 import sys
 import os
-import subprocess
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QMenu, QSplitter, QWidget, QVBoxLayout, QMessageBox, QFileDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 from show_result_screen import show_result_screen
 from file_open_screen import file_open_screen
-dir = os.path.dirname(os.getcwd())
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -23,7 +20,6 @@ class MyWindow(QMainWindow):
         self.statusBar()
         menubar = self.menuBar()
 
-        # 파일 메뉴 설정
         file_menu = menubar.addMenu('&File')
 
         open_menu = QMenu('&Open', self)
@@ -41,7 +37,6 @@ class MyWindow(QMainWindow):
         file_menu.addMenu(open_menu)
         file_menu.addAction(exit_action)
 
-        # 도구 메뉴 설정
         tool_menu = menubar.addMenu('&Tools')
         
         analyze_menu = QMenu('&Analyze', self)
@@ -56,16 +51,16 @@ class MyWindow(QMainWindow):
         tool_menu.addMenu(analyze_menu)
         tool_menu.addAction(search_action)
 
-        # 도움말 메뉴 설정
         helpMenu = menubar.addMenu('&Help')
         helpMenu.addAction('&About us')
 
-    # 화면 분할 구현. 왼쪽(파일 열기) + 오른쪽(출력 화면 = show_result_screen)으로 구성.
     def screen_split(self):
         splitter = QSplitter(Qt.Horizontal)
 
-        self.open_screen_widget = file_open_screen()  # 파일 열기 화면 위젯 
+        self.open_screen_widget = file_open_screen()
         self.result_screen_widget = show_result_screen()
+
+        self.open_screen_widget.result_screen_widget = self.result_screen_widget
 
         splitter.addWidget(self.open_screen_widget)
         splitter.addWidget(self.result_screen_widget)
@@ -78,30 +73,24 @@ class MyWindow(QMainWindow):
 
         self.setCentralWidget(container)
 
-        # 버튼 신호를 해당 슬롯에 연결
-        self.result_screen_widget.single_delete_button.clicked.connect(self.display_deletion_records)
-        self.load_records()
+        self.result_screen_widget.single_delete_button.clicked.connect(self.open_screen_widget.display_journal_results)
+        self.result_screen_widget.signature_mod_button.clicked.connect(self.open_screen_widget.display_falsify_results)
+        self.result_screen_widget.wiping_button.clicked.connect(self.result_screen_widget.load_wiping_results)
 
-    def confirm_exit(self):  # 파일-종료 버튼을 클릭했을 때의 이벤트
+    def confirm_exit(self):
         reply = QMessageBox.question(self, "Exit", "Are you sure you want to quit?", QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             QApplication.instance().quit()
 
-    def closeEvent(self, event):  # closeEvent 재정의 (Code Convention)
+    def closeEvent(self, event):
         self.confirm_exit()
         event.ignore()
 
     def new_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open evidence item", "", "All Files (*)")
         if file_path:
-            self.open_screen_widget.load_file(file_path)  # 파일 열기 화면에서 파일 로드 
+            self.open_screen_widget.load_file(file_path)
             self.result_screen_widget.analyze_file(file_path)
-
-    def display_deletion_records(self):
-        self.result_screen_widget.display_single_delete_records()
-
-    def load_records(self):
-        self.result_screen_widget.load_records()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
