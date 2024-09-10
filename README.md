@@ -25,7 +25,7 @@ This is the project from KITRI White Hat School 2nd Team project, developed by t
 
 ### Built With
 
-- Python 3.12.2 64-bit
+- Python 3.11.8 64-bit
 - C++
 - 
 
